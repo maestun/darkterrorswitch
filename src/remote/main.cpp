@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <OneWire.h>
 #include "common.h"
 #include "button.h"
@@ -6,10 +7,10 @@
 // HARDWARE CONFIG
 // -------------------------------------------------------------
 #define PIN_BUTTONS     A0
-#define PIN_ONEWIRE        3
 #define PIN_LED1        2
-#define PIN_LED2        7
+#define PIN_LED2        3
 #define PIN_LED3        4
+#define PIN_ONEWIRE     5
 
 // -------------------------------------------------------------
 // GLOBALS
@@ -23,6 +24,9 @@ bool bt1_on = false;
 bool bt2_on = false;
 bool bt3_on = false;
 
+#define ADDR_LED1        0
+#define ADDR_LED2        1
+#define ADDR_LED3        2
 
 // -------------------------------------------------------------
 // CODE
@@ -40,74 +44,44 @@ void update_relay(int command, bool state) {
 }
 
 
-void reset() {
-
-  // turn off all relays and all LEDs
-  led1_on = false;
-  update_relay(COMM_RELAY1, led1_on);
-  led2_on = false;
-  update_relay(COMM_RELAY2, led2_on);
-  led3_on = false;
-  update_relay(COMM_RELAY3, led3_on);
-
-  digitalWrite(PIN_LED1, LOW);
-  digitalWrite(PIN_LED2, LOW);
-  digitalWrite(PIN_LED3, LOW);
-}
-
-
-void __setup() {
-  // put your setup code here, to run once:
-  pinMode(PIN_BUTTONS, INPUT_PULLUP);
-  pinMode(PIN_LED1, OUTPUT);
-  pinMode(PIN_LED2, OUTPUT);
-  pinMode(PIN_LED3, OUTPUT);
-  pinMode(PIN_ONEWIRE, OUTPUT);
-
-  oneWire.begin(PIN_ONEWIRE);
-  reset();
-}
-
-
-
 
 /*
+    -- buttons --
     VCC (5v) --> 10k --> A0 pin
     A0 pin --> bt1 + bt2 + bt3
     bt1 --> 10k --> GND
     bt2 --> 22k --> GND
     bt2 --> 47k --> GND
+
+    -- leds --
+    Dxx --> 10k --> transistor Qxx base 
+    VCC --> transistor Qxx collector
+    GND -> LEDxx cathode
+    LEDxx anode --> 470k --> Qxx emitter
 */
 
-
-#define V_IN                  (5.0)
-#define ANALOG_READ_MAX       (1023)
-
-#define BUTTON_CHANNEL_OHMS   (10000)
-#define BUTTON_FXLOOP_OHMS    (22000)
-#define BUTTON_BOOST_OHMS     (47000)
-
-constexpr float voltage_divider(int r1, int r2) { 
-    return V_IN * (float(r1) / (r1 + r2)); 
-}
-
-constexpr int map_voltage_to_analogread(float vout) {
-    return (vout / V_IN) * ANALOG_READ_MAX;
-}
-
 void setup() {
-  led1_on = led2_on = led3_on = false;
-  pinMode(PIN_BUTTONS, INPUT);
-  pinMode(PIN_LED1, OUTPUT);
-  pinMode(PIN_LED2, OUTPUT);
-  pinMode(PIN_LED3, OUTPUT);
-  digitalWrite(PIN_LED1, led1_on);
-  digitalWrite(PIN_LED2, led2_on);
-  digitalWrite(PIN_LED3, led3_on);
-  Serial.begin(9600);
+    // led1_on = led2_on = led3_on = false;
+    pinMode(PIN_BUTTONS, INPUT);
+    pinMode(PIN_LED1, OUTPUT);
+    pinMode(PIN_LED2, OUTPUT);
+    pinMode(PIN_LED3, OUTPUT);
 
+    oneWire.begin(PIN_ONEWIRE);
+    Serial.begin(9600);
 
+    EEPROM.begin();
+    led1_on = EEPROM.read(ADDR_LED1);
+    led2_on = EEPROM.read(ADDR_LED2);
+    led3_on = EEPROM.read(ADDR_LED3);
 
+    update_relay(COMM_RELAY1, led1_on);
+    update_relay(COMM_RELAY2, led2_on);
+    update_relay(COMM_RELAY3, led3_on);
+
+    digitalWrite(PIN_LED1, led1_on);
+    digitalWrite(PIN_LED2, led2_on);
+    digitalWrite(PIN_LED3, led3_on);
 }
 
 #define ANALOG_DELTA          (10)
@@ -131,13 +105,14 @@ void setup() {
 
 
 void bt1_handler(uint8_t id, EButtonScanResult result) {
-        if (result == EButtonClick) {
-            Serial.println("B1 clic");
-            led1_on = !led1_on;
-            digitalWrite(PIN_LED1, led1_on);
-            update_relay(COMM_RELAY1, led1_on);      
-        }
-    
+    if (result == EButtonClick) {
+        Serial.println("B1 clic");
+        led1_on = !led1_on;
+        digitalWrite(PIN_LED1, led1_on);
+        update_relay(COMM_RELAY1, led1_on);
+        EEPROM.update(ADDR_LED1, led1_on);
+    }
+   
 }
 
 void bt2_handler(uint8_t id, EButtonScanResult result) {
@@ -145,7 +120,8 @@ void bt2_handler(uint8_t id, EButtonScanResult result) {
         Serial.println("B2 clic");
         led2_on = !led2_on;
         digitalWrite(PIN_LED2, led2_on);
-        update_relay(COMM_RELAY2, led2_on);      
+        update_relay(COMM_RELAY2, led2_on);
+        EEPROM.write(ADDR_LED2, led2_on);
     }
 }
 
@@ -154,7 +130,8 @@ void bt3_handler(uint8_t id, EButtonScanResult result) {
       Serial.println("B3 clic");
         led3_on = !led3_on;
         digitalWrite(PIN_LED3, led3_on);
-        update_relay(COMM_RELAY3, led3_on);      
+        update_relay(COMM_RELAY3, led3_on);
+        EEPROM.write(ADDR_LED3, led3_on);   
     }
 }
 
