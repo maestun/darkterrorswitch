@@ -87,8 +87,12 @@ void setup() {
 #define ANALOG_DELTA          (10)
 
 #define BT1_ID                (1)
+#define BT1_BT2_ID            (12)
+#define BT1_BT3_ID            (13)
 #define BT2_ID                (2)
+#define BT2_BT3_ID            (23)
 #define BT3_ID                (3)
+#define BT1_BT2_BT3_ID        (123)
 
 
 #define BT1_ANALOG            (505)
@@ -112,7 +116,6 @@ void bt1_handler(uint8_t id, EButtonScanResult result) {
         update_relay(COMM_RELAY1, led1_on);
         EEPROM.update(ADDR_LED1, led1_on);
     }
-   
 }
 
 void bt2_handler(uint8_t id, EButtonScanResult result) {
@@ -135,15 +138,48 @@ void bt3_handler(uint8_t id, EButtonScanResult result) {
     }
 }
 
+void bt12_handler(uint8_t id, EButtonScanResult result) {
+    bt1_handler(id, result);
+    bt2_handler(id, result);
+}
+
+void bt13_handler(uint8_t id, EButtonScanResult result) {
+    bt1_handler(id, result);
+    bt3_handler(id, result);
+}
+
+void bt23_handler(uint8_t id, EButtonScanResult result) {
+    bt2_handler(id, result);
+    bt3_handler(id, result);
+}
+
+void bt123_handler(uint8_t id, EButtonScanResult result) {
+    bt1_handler(id, result);
+    bt2_handler(id, result);
+    bt3_handler(id, result);
+}
+
 AnalogButton * bt1 = new AnalogButton(PIN_BUTTONS, BT1_ANALOG, BT1_ID, ANALOG_DELTA, 1000, bt1_handler);
 AnalogButton * bt2 = new AnalogButton(PIN_BUTTONS, BT2_ANALOG, BT2_ID, ANALOG_DELTA, 1000, bt2_handler);
 AnalogButton * bt3 = new AnalogButton(PIN_BUTTONS, BT3_ANALOG, BT3_ID, ANALOG_DELTA, 1000, bt3_handler);
+
+AnalogButton * bt12 = new AnalogButton(PIN_BUTTONS, BT1_BT2_ANALOG, BT1_BT2_ID, ANALOG_DELTA, 1000, bt12_handler);
+AnalogButton * bt13 = new AnalogButton(PIN_BUTTONS, BT1_BT3_ANALOG, BT1_BT3_ID, ANALOG_DELTA, 1000, bt13_handler);
+AnalogButton * bt23 = new AnalogButton(PIN_BUTTONS, BT2_BT3_ANALOG, BT2_BT3_ID, ANALOG_DELTA, 1000, bt23_handler);
+
+AnalogButton * bt123 = new AnalogButton(PIN_BUTTONS, BT1_BT2_BT3_ANALOG, BT1_BT2_BT3_ID, ANALOG_DELTA, 1000, bt123_handler);
 
 void loop() {
     // Serial.println(val);
     bt1->scan();
     bt2->scan();
     bt3->scan();
+
+    bt12->scan();
+    bt13->scan();
+    bt23->scan();
+    
+    bt123->scan();
     // delay(100);
 
 
