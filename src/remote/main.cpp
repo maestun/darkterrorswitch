@@ -1,0 +1,215 @@
+#include <OneWire.h>
+#include "common.h"
+#include "button.h"
+
+// -------------------------------------------------------------
+// HARDWARE CONFIG
+// -------------------------------------------------------------
+#define PIN_BUTTONS     A0
+#define PIN_ONEWIRE        3
+#define PIN_LED1        2
+#define PIN_LED2        7
+#define PIN_LED3        4
+
+// -------------------------------------------------------------
+// GLOBALS
+// -------------------------------------------------------------
+OneWire oneWire(PIN_ONEWIRE);
+bool led1_on = false;
+bool led2_on = false;
+bool led3_on = false;
+
+bool bt1_on = false;
+bool bt2_on = false;
+bool bt3_on = false;
+
+
+// -------------------------------------------------------------
+// CODE
+// -------------------------------------------------------------
+
+// Fonction pour envoyer une commande OneWire
+void update_relay(int command, bool state) {
+  // Démarrer la communication 1-Wire
+  oneWire.reset();         // Réinitialisation du bus
+  oneWire.write(0xCC);     // Skip ROM (ignorer l'adresse, un seul dispositif)
+  oneWire.write(0x00);     // Commande générique (peut être personnalisée)
+  
+  // Envoi de la commande spécifique pour chaque relais
+  oneWire.write(command & state);
+}
+
+
+void reset() {
+
+  // turn off all relays and all LEDs
+  led1_on = false;
+  update_relay(COMM_RELAY1, led1_on);
+  led2_on = false;
+  update_relay(COMM_RELAY2, led2_on);
+  led3_on = false;
+  update_relay(COMM_RELAY3, led3_on);
+
+  digitalWrite(PIN_LED1, LOW);
+  digitalWrite(PIN_LED2, LOW);
+  digitalWrite(PIN_LED3, LOW);
+}
+
+
+void __setup() {
+  // put your setup code here, to run once:
+  pinMode(PIN_BUTTONS, INPUT_PULLUP);
+  pinMode(PIN_LED1, OUTPUT);
+  pinMode(PIN_LED2, OUTPUT);
+  pinMode(PIN_LED3, OUTPUT);
+  pinMode(PIN_ONEWIRE, OUTPUT);
+
+  oneWire.begin(PIN_ONEWIRE);
+  reset();
+}
+
+
+
+
+/*
+    VCC (5v) --> 10k --> A0 pin
+    A0 pin --> bt1 + bt2 + bt3
+    bt1 --> 10k --> GND
+    bt2 --> 22k --> GND
+    bt2 --> 47k --> GND
+*/
+
+
+#define V_IN                  (5.0)
+#define ANALOG_READ_MAX       (1023)
+
+#define BUTTON_CHANNEL_OHMS   (10000)
+#define BUTTON_FXLOOP_OHMS    (22000)
+#define BUTTON_BOOST_OHMS     (47000)
+
+constexpr float voltage_divider(int r1, int r2) { 
+    return V_IN * (float(r1) / (r1 + r2)); 
+}
+
+constexpr int map_voltage_to_analogread(float vout) {
+    return (vout / V_IN) * ANALOG_READ_MAX;
+}
+
+void setup() {
+  led1_on = led2_on = led3_on = false;
+  pinMode(PIN_BUTTONS, INPUT);
+  pinMode(PIN_LED1, OUTPUT);
+  pinMode(PIN_LED2, OUTPUT);
+  pinMode(PIN_LED3, OUTPUT);
+  digitalWrite(PIN_LED1, led1_on);
+  digitalWrite(PIN_LED2, led2_on);
+  digitalWrite(PIN_LED3, led3_on);
+  Serial.begin(9600);
+
+
+
+}
+
+#define ANALOG_DELTA          (10)
+
+#define BT1_ID                (1)
+#define BT2_ID                (2)
+#define BT3_ID                (3)
+
+
+#define BT1_ANALOG            (505)
+#define BT2_ANALOG            (704)
+#define BT3_ANALOG            (845)
+
+#define BT1_BT2_ANALOG        (413)
+#define BT1_BT3_ANALOG        (457)
+#define BT2_BT3_ANALOG        (614)
+#define BT1_BT2_BT3_ANALOG    (379)
+
+#define IS_NEAR(x, val)       ((x - ANALOG_DELTA < val) && (x + ANALOG_DELTA > val))
+
+
+
+void bt1_handler(uint8_t id, EButtonScanResult result) {
+        if (result == EButtonClick) {
+            Serial.println("B1 clic");
+            led1_on = !led1_on;
+            digitalWrite(PIN_LED1, led1_on);
+            update_relay(COMM_RELAY1, led1_on);      
+        }
+    
+}
+
+void bt2_handler(uint8_t id, EButtonScanResult result) {
+    if (result == EButtonClick) {
+        Serial.println("B2 clic");
+        led2_on = !led2_on;
+        digitalWrite(PIN_LED2, led2_on);
+        update_relay(COMM_RELAY2, led2_on);      
+    }
+}
+
+void bt3_handler(uint8_t id, EButtonScanResult result) {
+    if (result == EButtonClick) {
+      Serial.println("B3 clic");
+        led3_on = !led3_on;
+        digitalWrite(PIN_LED3, led3_on);
+        update_relay(COMM_RELAY3, led3_on);      
+    }
+}
+
+AnalogButton * bt1 = new AnalogButton(PIN_BUTTONS, BT1_ANALOG, BT1_ID, ANALOG_DELTA, 1000, bt1_handler);
+AnalogButton * bt2 = new AnalogButton(PIN_BUTTONS, BT2_ANALOG, BT2_ID, ANALOG_DELTA, 1000, bt2_handler);
+AnalogButton * bt3 = new AnalogButton(PIN_BUTTONS, BT3_ANALOG, BT3_ID, ANALOG_DELTA, 1000, bt3_handler);
+
+void loop() {
+    // Serial.println(val);
+    bt1->scan();
+    bt2->scan();
+    bt3->scan();
+    // delay(100);
+
+
+  //   int val = analogRead(PIN_BUTTONS);
+
+  //   if (IS_NEAR(val, BT1_ANALOG) && bt1_on == false) {
+  //     bt1_on = true;
+  //       Serial.println("toggle B1");
+  //       led1_on = !led1_on;
+  //       digitalWrite(PIN_LED1, led1_on);
+  //       update_relay(COMM_RELAY1, led1_on);
+  //   }
+  //   else {
+      
+  //       bt1_on = false;
+  //   }
+
+  // if (IS_NEAR(val, BT2_ANALOG)) {
+  //   Serial.println("B2");
+  //   led2_on = !led2_on;
+  //   digitalWrite(PIN_LED2, led2_on);
+  // }
+
+  // if (IS_NEAR(val, BT3_ANALOG)) {
+  //   Serial.println("B3");
+  //   led3_on = !led3_on;
+  //   digitalWrite(PIN_LED3, led3_on);
+  // }
+
+  // if (IS_NEAR(val, BT1_BT2_ANALOG)) {
+  //   Serial.println("B1 + B2");
+  // }
+
+  // if (IS_NEAR(val, BT1_BT3_ANALOG)) {
+  //   Serial.println("B1 + B3");
+  // }
+
+  // if (IS_NEAR(val, BT2_BT3_ANALOG)) {
+  //   Serial.println("B2 + B3");
+  // }
+
+  // if (IS_NEAR(val, BT1_BT2_BT3_ANALOG)) {
+  //   Serial.println("B1 + B2 + B3");
+  // }
+
+}
