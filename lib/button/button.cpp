@@ -1,8 +1,3 @@
-/*
- * Pullup button wiring : Vcc => button => pin
- *                                      => 10k => GND
- */
-
 
 #include "button.h"
 
@@ -22,15 +17,26 @@ Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListe
     gPrevButton = BUTTON_NULL;
 }
 
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback) {
+    pinMode(aPin, INPUT);
+    _id = aPin;
+    _longpressed = false;
+    _longpressMS = aLongpressDelayMS;
+    _longpressTS = 0;
+    _debounceTS = 0;
+    _listener = NULL;
+    _fptr = aCallback;
+    _prevState = LOW;
+    gPrevButton = BUTTON_NULL;
+}
+
 
 void Button::onButtonReleased() {
-
     if(_id == gPrevButton) {
         // unclick
         if(_longpressed == false) {
             if (_listener != NULL) {
-        Serial.println("clic");
-
+                // Serial.println("clic");
                 _listener->onButtonEvent(_id, EButtonUp);
                 _listener->onButtonEvent(_id, EButtonClick);
             }
@@ -41,8 +47,7 @@ void Button::onButtonReleased() {
         }
         else {
             // unlongpress
-        Serial.println("unlong");
-
+            // Serial.println("unlong");
             if (_listener != NULL) {
                 _listener->onButtonEvent(_id, EButtonUnlongpress);
             }
@@ -64,8 +69,7 @@ void Button::onButtonPressed() {
         // same pin still pressed
         if(_longpressed == false && (millis() - _longpressTS) >= _longpressMS) {
             _longpressed = true;
-            Serial.println("longpress");
-
+            // Serial.println("longpress");
             if (_listener != NULL) {
                 _listener->onButtonEvent(_id, EButtonLongpress);
             }
@@ -74,8 +78,7 @@ void Button::onButtonPressed() {
             }
         }
         if(_longpressed == true) {
-            Serial.println("hold");
-
+            // Serial.println("hold");
             if (_listener != NULL) {
                _listener->onButtonEvent(_id, EButtonHold);
             }
@@ -108,8 +111,8 @@ void Button::scanLogic(int8_t aState) {
         // check state only if debounced
         if(aState == true) {
             // pressed
-            Serial.print(_id);
-            Serial.println(" press");
+            // Serial.print(_id);
+            // Serial.println(" press");
             onButtonPressed();
         }
         else {
@@ -125,13 +128,14 @@ void Button::scanLogic(int8_t aState) {
 
 void Button::scan() {
     int8_t state = digitalRead(_id);
+    // Serial.println(state);
     scanLogic(state);
 }
 
 
 void AnalogButton::scan() {
-    int val = analogRead(_analogPin);
-    // Serial.println(val);
+    uint16_t val = analogRead(_analogPin);
+    Serial.println(val);
     uint8_t state = ((val - _deltaValue < _analogValue) && (val + _deltaValue > _analogValue));
     scanLogic(state);
 }

@@ -6,6 +6,8 @@
  * Keep button pressed for lonpress time => EButtonLongpress
  * Release button (after longpress time) => EButtonUnlongpress
  *
+ * Pullup button wiring : Vcc => button pin A
+ *                               button pin B => input pin => 10k => GND
  */
 #include <stdint.h>
 #include <Arduino.h>
@@ -42,6 +44,7 @@ protected:
     void                scanLogic(int8_t aState);
 public:
     Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener);
+    Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback);
     void scan();
 };
 
@@ -52,19 +55,19 @@ private:
     uint16_t            _analogValue;
     uint8_t             _deltaValue;
 public:
-    AnalogButton::AnalogButton(uint8_t aAnalogPin, uint8_t aAnalogID, uint16_t aAnalogValue, uint8_t aDeltaValue, uint16_t aLongpressDelayMS, ButtonListener * aListener) :
+    AnalogButton(uint8_t aAnalogPin, uint8_t aAnalogID, uint16_t aAnalogValue, uint8_t aDeltaValue, uint16_t aLongpressDelayMS, ButtonListener * aListener) :
         Button(aAnalogID, aLongpressDelayMS, aListener) {
             _analogValue = aAnalogValue;
             _deltaValue= aDeltaValue;
     }
 
-    AnalogButton::AnalogButton(uint8_t aAnalogPin, 
-                               uint16_t aAnalogValue,
-                               uint8_t aAnalogID,
-                               uint8_t aDeltaValue, 
-                               uint16_t aLongpressDelayMS, 
-                               event_cb_t aCallback) :
-        Button(aAnalogID, aLongpressDelayMS, NULL) {
+    AnalogButton(uint8_t aAnalogPin, 
+                 uint16_t aAnalogValue,
+                 uint8_t aAnalogID,
+                 uint8_t aDeltaValue, 
+                 uint16_t aLongpressDelayMS, 
+                 event_cb_t aCallback) :
+        Button(aAnalogID, aLongpressDelayMS, (event_cb_t)NULL) {
             _analogPin = aAnalogPin;
             _analogValue = aAnalogValue;
             _deltaValue = aDeltaValue;
