@@ -27,7 +27,7 @@ public:
     virtual void onButtonEvent(uint8_t aID, EButtonScanResult aResult) = 0;
 };
 
-typedef void (*event_cb_t)(uint8_t id, EButtonScanResult result);
+typedef void (*button_cb_t)(uint8_t id, EButtonScanResult result);
 
 class Button {
 protected:
@@ -39,13 +39,13 @@ protected:
     uint32_t            _debounceTS;
     uint16_t            _longpressMS;
     ButtonListener *    _listener;
-    event_cb_t          _fptr;
+    button_cb_t          _fptr;
     void                onButtonReleased();
     void                onButtonPressed();
     void                scanLogic(int8_t aState);
 public:
     Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener);
-    Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback);
+    Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback);
     void scan();
 };
 
@@ -56,7 +56,12 @@ private:
     uint16_t            _analogValue;
     uint8_t             _deltaValue;
 public:
-    AnalogButton(uint8_t aAnalogPin, uint8_t aAnalogID, uint16_t aAnalogValue, uint8_t aDeltaValue, uint16_t aLongpressDelayMS, ButtonListener * aListener) :
+    AnalogButton(uint8_t aAnalogPin, 
+                 uint8_t aAnalogID, 
+                 uint16_t aAnalogValue, 
+                 uint8_t aDeltaValue, 
+                 uint16_t aLongpressDelayMS, 
+                 ButtonListener * aListener) :
         Button(aAnalogID, aLongpressDelayMS, aListener) {
             _analogValue = aAnalogValue;
             _deltaValue= aDeltaValue;
@@ -67,8 +72,8 @@ public:
                  uint8_t aAnalogID,
                  uint8_t aDeltaValue, 
                  uint16_t aLongpressDelayMS, 
-                 event_cb_t aCallback) :
-        Button(aAnalogID, aLongpressDelayMS, (event_cb_t)NULL) {
+                 button_cb_t aCallback) :
+        Button(aAnalogID, aLongpressDelayMS, (button_cb_t)NULL) {
             _analogPin = aAnalogPin;
             _analogValue = aAnalogValue;
             _deltaValue = aDeltaValue;

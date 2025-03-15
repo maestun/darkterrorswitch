@@ -16,7 +16,7 @@ Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListe
     _prevButton = BUTTON_NULL;
 }
 
-Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback) : 
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback) : 
     Button(aPin, aLongpressDelayMS, (ButtonListener *)NULL) {
     _fptr = aCallback;
 }
