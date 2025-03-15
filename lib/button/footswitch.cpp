@@ -1,17 +1,17 @@
 #include "footswitch.h"
 #include "debug.h"
 
-void Footswitch::handle(EButtonScanResult event, int id, int led_pin) {
-    switch (event) {
+void Footswitch::onButtonEvent(uint8_t aID, EButtonScanResult aResult) {
+    switch (aResult) {
         case EButtonDown: {
             // button down: toggle fx on if it wasn't
-            dprint(id);
+            dprint(aID);
             dprintln(F(" - DOWN"));
             if(_on == false) {
                 _on = true;
                 _disable = false;
-                _fptr(id, true);
-                digitalWrite(led_pin, true);
+                _fptr(aID, true);
+                digitalWrite(_ledPin, true);
             }
             else {
                 _disable = true;   
@@ -20,24 +20,24 @@ void Footswitch::handle(EButtonScanResult event, int id, int led_pin) {
 
         case EButtonUp: {
             // button released from shortpress: ignore
-            dprint(id);
+            dprint(aID);
             dprintln(F(" - UP"));
         } break;
 
         case EButtonClick: {
             // button clicked: turn fx off if it was on
-            dprint(id);
+            dprint(aID);
             dprintln(F(" - CLICK"));
             if(_on == true && _disable) {
                 _on = false;
-                _fptr(id, false);
-                digitalWrite(led_pin, false);
+                _fptr(aID, false);
+                digitalWrite(_ledPin, false);
             }        
         } break;
 
         case EButtonLongpress: {
             // switch temp mode
-            dprint(id);
+            dprint(aID);
             dprintln(" - LP");
             _led = true;
             _blinkTS = millis();
@@ -45,16 +45,16 @@ void Footswitch::handle(EButtonScanResult event, int id, int led_pin) {
         case EButtonHold: {
             if (millis() - _blinkTS > _blinkIntervalMS) {
                 _led = !_led;
-                digitalWrite(led_pin, _led);
+                digitalWrite(_ledPin, _led);
                 _blinkTS = millis();
             }    
         } break;
         case EButtonUnlongpress: {
-            dprint(id);
+            dprint(aID);
             dprintln(" - ULP");
             _on = false;
-            digitalWrite(led_pin, false);
-            _fptr(id, false);
+            digitalWrite(_ledPin, false);
+            _fptr(aID, false);
         } break;
     }
 }
