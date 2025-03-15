@@ -39,13 +39,14 @@ protected:
     uint32_t            _debounceTS;
     uint16_t            _longpressMS;
     ButtonListener *    _listener;
-    button_cb_t          _fptr;
+    button_cb_t         _fptr;
+    uint8_t             _inputMode;
     void                onButtonReleased();
     void                onButtonPressed();
     void                scanLogic(int8_t aState);
 public:
-    Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener);
-    Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback);
+    Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener, uint8_t aMode = INPUT_PULLUP);
+    Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback, uint8_t aMode = INPUT_PULLUP);
     void scan();
 };
 
@@ -61,8 +62,9 @@ public:
                  uint16_t aAnalogValue, 
                  uint8_t aDeltaValue, 
                  uint16_t aLongpressDelayMS, 
-                 ButtonListener * aListener) :
-        Button(aAnalogID, aLongpressDelayMS, aListener) {
+                 ButtonListener * aListener,
+                 uint8_t aMode = INPUT) :
+        Button(aAnalogID, aLongpressDelayMS, aListener, aMode) {
             _analogValue = aAnalogValue;
             _deltaValue= aDeltaValue;
     }
@@ -72,8 +74,9 @@ public:
                  uint8_t aAnalogID,
                  uint8_t aDeltaValue, 
                  uint16_t aLongpressDelayMS, 
-                 button_cb_t aCallback) :
-        Button(aAnalogID, aLongpressDelayMS, (button_cb_t)NULL) {
+                 button_cb_t aCallback,
+                 uint8_t aMode = INPUT) :
+        Button(aAnalogID, aLongpressDelayMS, (button_cb_t)NULL, aMode) {
             _analogPin = aAnalogPin;
             _analogValue = aAnalogValue;
             _deltaValue = aDeltaValue;

@@ -49,15 +49,17 @@ public:
      * @param aPin digital pin attached to the button (see wiring above)
      * @param aLEDPin digital pin where the LED is attached
      * @param aCallback catch footswitch state changes
+     * @param aMode digital read mode
      * @param aLongpressDelayMS enable temp mode after this time, when button is held down
      * @param aBlinkIntervalMS enable LED blinking in temp mode
      */
     Footswitch(uint8_t aPin, 
                uint8_t aLEDPin, 
                footswitch_cb_t aCallback,
+               uint8_t aMode = INPUT_PULLUP,
                uint16_t aLongpressDelayMS = DEFAULT_LONGPRESS_INTERVAL_MS, 
                uint16_t aBlinkIntervalMS = DEFAULT_TEMP_BLINK_INTERVAL_MS) :
-    Button(aPin, aLongpressDelayMS, this) {
+    Button(aPin, aLongpressDelayMS, this, aMode) {
         pinMode(_ledPin, OUTPUT);
         _on = _disable = _led = false;
         _blinkTS = 0;

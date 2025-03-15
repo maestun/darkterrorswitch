@@ -4,8 +4,9 @@
 static const uint8_t  DEBOUNCE_MS = 20;
 static const int8_t   BUTTON_NULL = -1;
 
-Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener) {
-    pinMode(aPin, INPUT);
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener, uint8_t aMode) {
+    pinMode(aPin, aMode);
+    _inputMode = aMode;
     _id = aPin;
     _longpressed = false;
     _longpressMS = aLongpressDelayMS;
@@ -16,8 +17,8 @@ Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListe
     _prevButton = BUTTON_NULL;
 }
 
-Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback) : 
-    Button(aPin, aLongpressDelayMS, (ButtonListener *)NULL) {
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback, uint8_t aMode) : 
+    Button(aPin, aLongpressDelayMS, (ButtonListener *)NULL, aMode) {
     _fptr = aCallback;
 }
 
@@ -118,8 +119,11 @@ void Button::scanLogic(int8_t aState) {
 
 
 void Button::scan() {
-    int8_t state = digitalRead(_id);
+    bool state = !!digitalRead(_id);
     // Serial.println(state);
+    if (_inputMode == INPUT_PULLUP) {
+        state = !state;
+    }
     scanLogic(state);
 }
 
