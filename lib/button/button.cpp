@@ -1,9 +1,8 @@
 
 #include "button.h"
 
-static const uint8_t  DEBOUNCE_MS = 50;
+static const uint8_t  DEBOUNCE_MS = 20;
 static const int8_t   BUTTON_NULL = -1;
-static int8_t         gPrevButton = BUTTON_NULL;
 
 Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener) {
     pinMode(aPin, INPUT);
@@ -14,25 +13,17 @@ Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListe
     _debounceTS = 0;
     _listener = aListener;
     _prevState = LOW;
-    gPrevButton = BUTTON_NULL;
+    _prevButton = BUTTON_NULL;
 }
 
-Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback) {
-    pinMode(aPin, INPUT);
-    _id = aPin;
-    _longpressed = false;
-    _longpressMS = aLongpressDelayMS;
-    _longpressTS = 0;
-    _debounceTS = 0;
-    _listener = NULL;
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, event_cb_t aCallback) : 
+    Button(aPin, aLongpressDelayMS, (ButtonListener *)NULL) {
     _fptr = aCallback;
-    _prevState = LOW;
-    gPrevButton = BUTTON_NULL;
 }
 
 
 void Button::onButtonReleased() {
-    if(_id == gPrevButton) {
+    if(_id == _prevButton) {
         // unclick
         if(_longpressed == false) {
             if (_listener != NULL) {
@@ -56,7 +47,7 @@ void Button::onButtonReleased() {
             }
             _longpressed = false;
         }
-        gPrevButton = BUTTON_NULL;
+        _prevButton = BUTTON_NULL;
     }
 }
 
@@ -65,7 +56,7 @@ void Button::onButtonReleased() {
 void Button::onButtonPressed() {
 
     // previous code w/ longpress detection
-    if(_id == gPrevButton) {
+    if(_id == _prevButton) {
         // same pin still pressed
         if(_longpressed == false && (millis() - _longpressTS) >= _longpressMS) {
             _longpressed = true;
@@ -96,7 +87,7 @@ void Button::onButtonPressed() {
             _fptr(_id, EButtonDown);
         }
         _longpressTS = millis();
-        gPrevButton = _id;
+        _prevButton = _id;
     }
 }
 
@@ -132,10 +123,11 @@ void Button::scan() {
     scanLogic(state);
 }
 
+// =============================================================================
 
 void AnalogButton::scan() {
     uint16_t val = analogRead(_analogPin);
-    Serial.println(val);
+    // Serial.println(val);
     uint8_t state = ((val - _deltaValue < _analogValue) && (val + _deltaValue > _analogValue));
     scanLogic(state);
 }

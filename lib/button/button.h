@@ -33,6 +33,7 @@ class Button {
 protected:
     uint8_t             _id;
     uint8_t             _prevState;
+    uint8_t             _prevButton;
     bool                _longpressed;
     uint32_t            _longpressTS;
     uint32_t            _debounceTS;
