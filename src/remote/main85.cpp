@@ -75,9 +75,9 @@ void setup() {
     led2_on = EEPROM.read(ADDR_LED2);
     led3_on = EEPROM.read(ADDR_LED3);
 
-    update_relay(COMM_RELAY1, led1_on);
-    update_relay(COMM_RELAY2, led2_on);
-    update_relay(COMM_RELAY3, led3_on);
+    update_relay(COMM_RELAY_CHANNEL, led1_on);
+    update_relay(COMM_RELAY_BOOST, led2_on);
+    update_relay(COMM_RELAY_FXLOOP, led3_on);
 
     digitalWrite(PIN_LED1, led1_on);
     digitalWrite(PIN_LED2, led2_on);
@@ -113,7 +113,7 @@ void bt1_handler(uint8_t id, EButtonScanResult result) {
         Serial.println("B1 clic");
         led1_on = !led1_on;
         digitalWrite(PIN_LED1, led1_on);
-        update_relay(COMM_RELAY1, led1_on);
+        update_relay(COMM_RELAY_CHANNEL, led1_on);
         EEPROM.update(ADDR_LED1, led1_on);
     }
 }
@@ -123,7 +123,7 @@ void bt2_handler(uint8_t id, EButtonScanResult result) {
         Serial.println("B2 clic");
         led2_on = !led2_on;
         digitalWrite(PIN_LED2, led2_on);
-        update_relay(COMM_RELAY2, led2_on);
+        update_relay(COMM_RELAY_BOOST, led2_on);
         EEPROM.write(ADDR_LED2, led2_on);
     }
 }
@@ -133,7 +133,7 @@ void bt3_handler(uint8_t id, EButtonScanResult result) {
       Serial.println("B3 clic");
         led3_on = !led3_on;
         digitalWrite(PIN_LED3, led3_on);
-        update_relay(COMM_RELAY3, led3_on);
+        update_relay(COMM_RELAY_FXLOOP, led3_on);
         EEPROM.write(ADDR_LED3, led3_on);   
     }
 }

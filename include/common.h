@@ -1,5 +1,5 @@
 #pragma once
 
-#define COMM_RELAY1 2
-#define COMM_RELAY2 4
-#define COMM_RELAY3 8
+#define COMM_RELAY_CHANNEL  2
+#define COMM_RELAY_BOOST    4
+#define COMM_RELAY_FXLOOP   8

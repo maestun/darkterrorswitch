@@ -1,17 +1,12 @@
-/*
- * Pullup button wiring : Vcc => button => pin
- *                                      => 10k => GND
- */
-
 
 #include "button.h"
 
-static const uint8_t  DEBOUNCE_MS = 50;
+static const uint8_t  DEBOUNCE_MS = 20;
 static const int8_t   BUTTON_NULL = -1;
-static int8_t         gPrevButton = BUTTON_NULL;
 
-Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener) {
-    pinMode(aPin, INPUT);
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListener, uint8_t aMode) {
+    pinMode(aPin, aMode);
+    _inputMode = aMode;
     _id = aPin;
     _longpressed = false;
     _longpressMS = aLongpressDelayMS;
@@ -19,18 +14,21 @@ Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, ButtonListener * aListe
     _debounceTS = 0;
     _listener = aListener;
     _prevState = LOW;
-    gPrevButton = BUTTON_NULL;
+    _prevButton = BUTTON_NULL;
+}
+
+Button::Button(uint8_t aPin, uint16_t aLongpressDelayMS, button_cb_t aCallback, uint8_t aMode) : 
+    Button(aPin, aLongpressDelayMS, (ButtonListener *)NULL, aMode) {
+    _fptr = aCallback;
 }
 
 
 void Button::onButtonReleased() {
-
-    if(_id == gPrevButton) {
+    if(_id == _prevButton) {
         // unclick
         if(_longpressed == false) {
             if (_listener != NULL) {
-        Serial.println("clic");
-
+                // Serial.println("clic");
                 _listener->onButtonEvent(_id, EButtonUp);
                 _listener->onButtonEvent(_id, EButtonClick);
             }
@@ -41,8 +39,7 @@ void Button::onButtonReleased() {
         }
         else {
             // unlongpress
-        Serial.println("unlong");
-
+            // Serial.println("unlong");
             if (_listener != NULL) {
                 _listener->onButtonEvent(_id, EButtonUnlongpress);
             }
@@ -51,7 +48,7 @@ void Button::onButtonReleased() {
             }
             _longpressed = false;
         }
-        gPrevButton = BUTTON_NULL;
+        _prevButton = BUTTON_NULL;
     }
 }
 
@@ -60,12 +57,11 @@ void Button::onButtonReleased() {
 void Button::onButtonPressed() {
 
     // previous code w/ longpress detection
-    if(_id == gPrevButton) {
+    if(_id == _prevButton) {
         // same pin still pressed
         if(_longpressed == false && (millis() - _longpressTS) >= _longpressMS) {
             _longpressed = true;
-            Serial.println("longpress");
-
+            // Serial.println("longpress");
             if (_listener != NULL) {
                 _listener->onButtonEvent(_id, EButtonLongpress);
             }
@@ -74,8 +70,7 @@ void Button::onButtonPressed() {
             }
         }
         if(_longpressed == true) {
-            Serial.println("hold");
-
+            // Serial.println("hold");
             if (_listener != NULL) {
                _listener->onButtonEvent(_id, EButtonHold);
             }
@@ -93,7 +88,7 @@ void Button::onButtonPressed() {
             _fptr(_id, EButtonDown);
         }
         _longpressTS = millis();
-        gPrevButton = _id;
+        _prevButton = _id;
     }
 }
 
@@ -108,8 +103,8 @@ void Button::scanLogic(int8_t aState) {
         // check state only if debounced
         if(aState == true) {
             // pressed
-            Serial.print(_id);
-            Serial.println(" press");
+            // Serial.print(_id);
+            // Serial.println(" press");
             onButtonPressed();
         }
         else {
@@ -124,13 +119,18 @@ void Button::scanLogic(int8_t aState) {
 
 
 void Button::scan() {
-    int8_t state = digitalRead(_id);
+    bool state = !!digitalRead(_id);
+    // Serial.println(state);
+    if (_inputMode == INPUT_PULLUP) {
+        state = !state;
+    }
     scanLogic(state);
 }
 
+// =============================================================================
 
 void AnalogButton::scan() {
-    int val = analogRead(_analogPin);
+    uint16_t val = analogRead(_analogPin);
     // Serial.println(val);
     uint8_t state = ((val - _deltaValue < _analogValue) && (val + _deltaValue > _analogValue));
     scanLogic(state);
