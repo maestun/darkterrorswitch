@@ -9,20 +9,20 @@
 #define PIN_RELAY3   PB2
 #define PIN_COMM     PB3
 
-OneWire oneWire(PIN_COMM);
+OneWire oneWire(PIN_SOFTSERIAL);
 
 void reset() {
 }
 
 void setup() {
-    pinMode(PIN_RELAY1, OUTPUT);
-    pinMode(PIN_RELAY2, OUTPUT);
-    pinMode(PIN_RELAY3, OUTPUT);
-    oneWire.begin(PIN_COMM);
+    pinMode(PIN_RELAY_CHANNEL, OUTPUT);
+    pinMode(PIN_RELAY_BOOST, OUTPUT);
+    pinMode(PIN_RELAY_FXLOOP, OUTPUT);
+    oneWire.begin(PIN_SOFTSERIAL);
 
-    digitalWrite(PIN_RELAY1, LOW);
-    digitalWrite(PIN_RELAY2, LOW);
-    digitalWrite(PIN_RELAY3, LOW);
+    digitalWrite(PIN_RELAY_CHANNEL, LOW);
+    digitalWrite(PIN_RELAY_BOOST, LOW);
+    digitalWrite(PIN_RELAY_FXLOOP, LOW);
 }
 
 void loop() {
@@ -38,15 +38,15 @@ void loop() {
     relay = value & 0xfe; // other bits == relay value
 
     if (relay == COMM_RELAY1) {
-        digitalWrite(PIN_RELAY1, state);
+        digitalWrite(PIN_RELAY_CHANNEL, state);
     }
 
     if (relay == COMM_RELAY2) { 
-        digitalWrite(PIN_RELAY2, state);
+        digitalWrite(PIN_RELAY_BOOST, state);
     }
 
     if (relay == COMM_RELAY3) {
-        digitalWrite(PIN_RELAY3, state);
+        digitalWrite(PIN_RELAY_FXLOOP, state);
     }
 
     delay(50);

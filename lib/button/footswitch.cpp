@@ -5,8 +5,8 @@ void Footswitch::onButtonEvent(uint8_t aID, EButtonScanResult aResult) {
     switch (aResult) {
         case EButtonDown: {
             // button down: toggle fx on if it wasn't
-            dprint(aID);
-            dprintln(F(" - DOWN"));
+            // Serial.print(aID);
+            // Serial.println(F(" - DOWN"));
             if(_on == false) {
                 _on = true;
                 _disable = false;
@@ -20,14 +20,14 @@ void Footswitch::onButtonEvent(uint8_t aID, EButtonScanResult aResult) {
 
         case EButtonUp: {
             // button released from shortpress: ignore
-            dprint(aID);
-            dprintln(F(" - UP"));
+            // Serial.print(aID);
+            // Serial.println(F(" - UP"));
         } break;
 
         case EButtonClick: {
             // button clicked: turn fx off if it was on
-            dprint(aID);
-            dprintln(F(" - CLICK"));
+            // Serial.print(aID);
+            // Serial.println(F(" - CLICK"));
             if(_on == true && _disable) {
                 _on = false;
                 _fptr(aID, false);
@@ -37,8 +37,8 @@ void Footswitch::onButtonEvent(uint8_t aID, EButtonScanResult aResult) {
 
         case EButtonLongpress: {
             // switch temp mode
-            dprint(aID);
-            dprintln(" - LP");
+            // Serial.print(aID);
+            // Serial.println(" - LP");
             _led = true;
             _blinkTS = millis();
         } break;
@@ -50,11 +50,17 @@ void Footswitch::onButtonEvent(uint8_t aID, EButtonScanResult aResult) {
             }    
         } break;
         case EButtonUnlongpress: {
-            dprint(aID);
-            dprintln(" - ULP");
+            // Serial.print(aID);
+            // Serial.println(" - ULP");
             _on = false;
             digitalWrite(_ledPin, false);
             _fptr(aID, false);
         } break;
     }
+}
+
+void Footswitch::enable(bool aEnable) {
+    _on = aEnable;
+    digitalWrite(_ledPin, aEnable);
+    _fptr(_id, aEnable);
 }

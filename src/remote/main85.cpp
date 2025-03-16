@@ -10,12 +10,12 @@
 #define PIN_LED1        2
 #define PIN_LED2        3
 #define PIN_LED3        4
-#define PIN_ONEWIRE     5
+#define PIN_SOFTSERIAL     5
 
 // -------------------------------------------------------------
 // GLOBALS
 // -------------------------------------------------------------
-OneWire oneWire(PIN_ONEWIRE);
+OneWire oneWire(PIN_SOFTSERIAL);
 bool led1_on = false;
 bool led2_on = false;
 bool led3_on = false;
@@ -67,7 +67,7 @@ void setup() {
     pinMode(PIN_LED2, OUTPUT);
     pinMode(PIN_LED3, OUTPUT);
 
-    oneWire.begin(PIN_ONEWIRE);
+    oneWire.begin(PIN_SOFTSERIAL);
     Serial.begin(9600);
 
     EEPROM.begin();
