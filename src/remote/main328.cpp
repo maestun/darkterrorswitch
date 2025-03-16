@@ -55,8 +55,8 @@ void on_footswitch_event(uint8_t id, bool state) {
 
 void reset() {
     // set amp default state
-    _channel_button.enable(false);
-    _boost_button.enable(false);
+    _channel_button.enable(true);
+    _boost_button.enable(true);
     _fxloop_button.enable(true);
 }
 
