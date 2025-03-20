@@ -62,7 +62,7 @@ void reset() {
 
 void setup() {
     dprintinit(9600);
-    dprintln("start");
+    dprintln(F("start"));
     _serial.begin(9600);
     reset();
 }
